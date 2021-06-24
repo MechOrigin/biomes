@@ -1,7 +1,5 @@
 package net.fabricmc.biomes;
 
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
 import java.util.function.Function;
 
 import net.fabricmc.api.ClientModInitializer;
@@ -23,7 +21,6 @@ import net.minecraft.resource.ResourceManager;
 import net.minecraft.resource.ResourceType;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.profiler.Profiler;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.world.BlockRenderView;
 
@@ -62,14 +59,6 @@ public class BiomesClient implements ClientModInitializer {
 				final Function<Identifier, Sprite> atlas = MinecraftClient.getInstance().getSpriteAtlas(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE);
 				fluidSprites[0] = atlas.apply(stillSpriteId);
 				fluidSprites[1] = atlas.apply(flowingSpriteId);
-			}
-
-			@Override
-			public CompletableFuture<Void> reload(Synchronizer synchronizer, ResourceManager manager,
-					Profiler prepareProfiler, Profiler applyProfiler, Executor prepareExecutor,
-					Executor applyExecutor) {
-				// TODO Auto-generated method stub
-				return null;
 			}
 			
 		});
