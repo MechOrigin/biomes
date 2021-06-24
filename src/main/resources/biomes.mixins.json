@@ -6,7 +6,8 @@
   "mixins": [
   ],
   "client": [
-    "BiomesMixin"
+    "BiomesMixin",
+    "BiomeFeaturesMixin"
   ],
   "injectors": {
     "defaultRequire": 1

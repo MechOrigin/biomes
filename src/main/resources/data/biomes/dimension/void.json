@@ -1,0 +1,11 @@
+{
+    "generator": {
+      "type": "biomes:void",
+      "custom_bool": true,
+      "biome_source": {
+        "type": "minecraft:fixed",
+        "biome": "minecraft:plains"
+      }
+    },
+    "type": "biomes:void_type"
+  }

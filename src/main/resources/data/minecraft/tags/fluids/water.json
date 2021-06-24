@@ -1,0 +1,9 @@
+{
+    "replace": false,
+    "values":
+    [
+
+        "biomes:acid",
+        "biomes:flowing_acid"
+    ]
+}
