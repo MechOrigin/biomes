@@ -73,12 +73,12 @@ public class BiomesMod implements ModInitializer {
 
 	/* Dimensions */
 	private static final RegistryKey<DimensionOptions> DIMENSION_KEY = RegistryKey.of(
-			Registry.DIMENSION_OPTIONS,
+			Registry.DIMENSION_KEY,
 			new Identifier("biomes", "void")
 	);
 
 	private static RegistryKey<World> WORLD_KEY = RegistryKey.of(
-			Registry.DIMENSION,
+			Registry.WORLD_KEY,
 			DIMENSION_KEY.getValue()
 	);
 
@@ -174,7 +174,7 @@ public class BiomesMod implements ModInitializer {
 		/* Dimensions */
 		Registry.register(Registry.CHUNK_GENERATOR, new Identifier("biomes", "void"), VoidChunkGenerator.CODEC);
 
-		WORLD_KEY = RegistryKey.of(Registry.DIMENSION, new Identifier("biomes", "void"));
+		WORLD_KEY = RegistryKey.of(Registry.WORLD_KEY, new Identifier("biomes", "void"));
 
 		ServerLifecycleEvents.SERVER_STARTED.register(server -> {
 			ServerWorld overworld = server.getWorld(World.OVERWORLD);

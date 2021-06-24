@@ -2,7 +2,7 @@ package net.fabricmc.biomes.structures;
 
 import java.util.Random;
 import net.fabricmc.biomes.BiomesMod;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.structure.SimpleStructurePiece;
 import net.minecraft.structure.Structure;
 import net.minecraft.structure.StructureManager;
@@ -21,7 +21,7 @@ public class MyPiece extends SimpleStructurePiece {
   public final BlockRotation rotation;
   public final Identifier template;
 
-  public MyPiece(StructureManager structureManager, CompoundTag compoundTag) {
+  public MyPiece(StructureManager structureManager, NbtCompound compoundTag) {
     super(BiomesMod.MY_PIECE, compoundTag);
     this.template = new Identifier(compoundTag.getString("Template"));
     this.rotation = BlockRotation.valueOf(compoundTag.getString("Rot"));
@@ -46,7 +46,7 @@ public class MyPiece extends SimpleStructurePiece {
     this.setStructureData(structure, this.pos, placementData);
   }
 
-  protected void toNbt(CompoundTag tag) {
+  protected void toNbt(NbtCompound tag) {
     super.toNbt(tag);
     tag.putString("Template", this.template.toString());
     tag.putString("Rot", this.rotation.name());

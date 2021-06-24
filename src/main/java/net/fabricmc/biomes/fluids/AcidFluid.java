@@ -27,7 +27,8 @@ public abstract class AcidFluid extends TutorialFluid {
     
     @Override
     public BlockState toBlockState(FluidState fluidState) {
-        return BiomesMod.ACID.getDefaultState().with(Properties.LEVEL_15, method_15741(fluidState));
+        return BiomesMod.ACID.getDefaultState().with(Properties.LEVEL_15, getBlockStateLevel(fluidState));
+    //    return BiomesMod.ACID.getDefaultState().with(Properties.LEVEL_15, method_15741(fluidState));
     }
 
     public static class Flowing extends AcidFluid {
