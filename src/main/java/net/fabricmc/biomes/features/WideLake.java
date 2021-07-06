@@ -8,6 +8,7 @@ import com.google.common.collect.ImmutableSet;
 import com.mojang.serialization.Codec;
 
 import net.fabricmc.biomes.BiomesMod;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.Material;
@@ -25,32 +26,43 @@ import net.minecraft.world.gen.feature.Feature;
 
 public class WideLake extends Feature<SimpleBlockProviderConfig> {
 
-    protected static final Set<Material> unacceptableSolidMaterials = ImmutableSet.of(Material.BAMBOO, Material.BAMBOO_SAPLING, Material.LEAVES, Material.COBWEB, Material.CACTUS, Material.REPAIR_STATION, Material.GOURD, Material.CAKE, Material.EGG, Material.BARRIER, Material.CAKE);
+    protected static final Set<Material> unacceptableSolidMaterials = ImmutableSet.of(
+    Material.BAMBOO,
+    Material.LEAVES, 
+    Material.COBWEB, 
+    Material.CACTUS, 
+    Material.REPAIR_STATION, 
+    Material.GOURD, 
+    Material.CAKE, 
+    Material.EGG, 
+    Material.BARRIER, 
+    Material.CAKE
+    );
 
     protected long noiseSeed;
     protected OctaveSimplexNoiseSampler noiseGen;
 
     public void setSeed(long seed) {
-        ChunkRandom sharedseedrandom = new ChunkRandom(seed);
+        ChunkRandom sharedRandomSeed = new ChunkRandom(seed);
         if (this.noiseSeed != seed || this.noiseGen == null) {
-            this.noiseGen = new OctaveSimplexNoiseSampler(sharedseedrandom, ImmutableList.of(0));
+            this.noiseGen = new OctaveSimplexNoiseSampler(sharedRandomSeed, ImmutableList.of(0));
         }
 
         this.noiseSeed = seed;
     }
 
-
     public WideLake(Codec<SimpleBlockProviderConfig> configFactory) {
         super(configFactory);
     }
 
-
     @Override
-    public boolean generate(StructureWorldAccess world, ChunkGenerator chunkSettings, Random random, BlockPos position, SimpleBlockProviderConfig config) {
-        setSeed(world.getSeed());
-        BlockPos.Mutable mutable = new BlockPos.Mutable().set(position.down(2));
+    public boolean generate(StructureWorldAccess world, ChunkGenerator chunkSettings, Random random, BlockPos position,
+            SimpleBlockProviderConfig config) {
 
-        // creates the actual lakes
+        setSeed(world.getSeed());
+        BlockPos.Mutable mutable = new BlockPos.Mutable().set(position.down(2)); // goes down 2 blocks
+
+        // creates the lakes
         boolean containedFlag;
         Material material;
         BlockState blockState;
@@ -59,43 +71,43 @@ public class WideLake extends Feature<SimpleBlockProviderConfig> {
 
                 int xTemp = x - 10;
                 int zTemp = z - 10;
-                //circle shaped
+                //circle shape
                 if (xTemp * xTemp + zTemp * zTemp < 64) {
 
                     double samplePerlin1 = (this.noiseGen.sample(
-                            (double) position.getX() + x * 0.05D,
-                            (double) position.getZ() + z * 0.05D, true) + 1)
-                            * 3.0D;
-
+                        position.getX() + x * 0.05D,
+                        position.getZ() + z * 0.05D,
+                        true) + 1) * 3.0D;
+                    
                     for (int y = 0; y > -samplePerlin1; --y) {
 
                         mutable.set(position).move(x, y, z);
 
-                        // checks if the spot is solid all around (diagonally too) and has nothing solid above it
+                        //check if the spot is solid around, nothing solid above
                         containedFlag = checkIfValidSpot(world, mutable, samplePerlin1);
 
-                        // Is spot within the mask (sorta a roundish area) and is contained
+                        // is spot within the mask and contained
                         if (containedFlag) {
-                            // check below without moving down
 
-                            // sets the fluid block
+                            //check below
+                            //set the fluid block
                             BlockState configState = config.getBlockProvider().getBlockState(random, mutable);
 
                             world.setBlockState(mutable, configState, 3);
                             if (configState == Blocks.WATER.getDefaultState())
-                                world.getFluidTickScheduler().schedule(mutable, Fluids.WATER, 0);
+                            world.getFluidTickScheduler().schedule(mutable, Fluids.WATER, 0);
                             else if (configState == Blocks.LAVA.getDefaultState())
-                                world.getFluidTickScheduler().schedule(mutable, Fluids.LAVA, 0);
+                            world.getFluidTickScheduler().schedule(mutable, Fluids.LAVA, 0);
 
-                            // remove floating plants so they aren't hovering.
-                            // check above while moving up one.
+                            //remove floating plants from hovering
+                            //check above
                             blockState = world.getBlockState(mutable.move(Direction.UP));
                             material = blockState.getMaterial();
 
                             if (material == Material.PLANT && blockState.getBlock() != Blocks.LILY_PAD) {
                                 world.setBlockState(mutable, Blocks.AIR.getDefaultState(), 2);
 
-                                // recursively moves up and breaks floating sugar cane
+                                // recursively move up and break floating sugar cane
                                 while (mutable.getY() < world.getHeight() && world.getBlockState(mutable.move(Direction.UP)) == Blocks.SUGAR_CANE.getDefaultState()) {
                                     world.setBlockState(mutable, Blocks.AIR.getDefaultState(), 2);
                                 }
@@ -105,11 +117,8 @@ public class WideLake extends Feature<SimpleBlockProviderConfig> {
                                 world.setBlockState(mutable.up(), Blocks.AIR.getDefaultState(), 2);
                             }
 
-                                    // recursively moves up and breaks floating sugar cane
+                                    // recursively move down and replace water with acid
                                     while (mutable.getY() < world.getHeight() && world.getBlockState(mutable.move(Direction.DOWN)) == Blocks.WATER.getDefaultState()) {
-                                        //world.setBlockState(mutable, Blocks.LAVA.getDefaultState(), 2);
-                                        //world.getFluidTickScheduler().schedule(mutable, Fluids.LAVA, 0);
-
                                         world.setBlockState(mutable, BiomesMod.ACID.getDefaultState(), 2);
                                         world.getFluidTickScheduler().schedule(mutable, BiomesMod.STILL_ACID, 0);
                                     }
@@ -118,17 +127,10 @@ public class WideLake extends Feature<SimpleBlockProviderConfig> {
                 }
             }
         }
+
         return true;
     }
 
-
-    /**
-     * checks if the spot is surrounded by solid blocks below and all around horizontally plus nothing solid above.
-     *
-     * @param world            - world to check for materials in
-     * @param blockpos$Mutable - location to check if valid
-     * @return - if the spot is valid
-     */
     private boolean checkIfValidSpot(WorldAccess world, BlockPos.Mutable blockpos$Mutable, double noise) {
         Material material;
         BlockState blockState;
@@ -140,22 +142,19 @@ public class WideLake extends Feature<SimpleBlockProviderConfig> {
             temp.move(Direction.UP);
         }
         if (!blockState.isAir() && blockState.getFluidState().isEmpty())
-            return false;
+        return false;
 
-
-        // must be solid below
-        // Will also return false if an unacceptable solid material is found.
+        //must be solid below and will return false is unacceptable solid material found
         blockState = world.getBlockState(blockpos$Mutable.down());
         material = blockState.getMaterial();
         if ((!material.isSolid() || unacceptableSolidMaterials.contains(material) ||
-                BlockTags.PLANKS.contains(blockState.getBlock())) &&
-                blockState.getFluidState().isEmpty() &&
-                blockState.getFluidState() != Fluids.WATER.getStill(false)) {
-            return false;
+            BlockTags.PLANKS.contains(blockState.getBlock())) &&
+            blockState.getFluidState().isEmpty() &&
+            blockState.getFluidState() != Fluids.WATER.getStill(false)) {
+                return false;
         }
 
-
-        // places water on tips
+        //place water on tip
         if ((noise < 2D && world.getBlockState(blockpos$Mutable.up()).isAir())) {
             int open = 0;
             for (Direction direction : Direction.Type.HORIZONTAL) {
@@ -166,19 +165,22 @@ public class WideLake extends Feature<SimpleBlockProviderConfig> {
             if (open == 1) return true;
         }
 
-        // Must be solid all around even diagonally.
-        // Will also return false if an unacceptable solid material is found.
+        //must be solid all around and will return false if unacceptable solid material
         for (int x2 = -1; x2 < 2; x2++) {
             for (int z2 = -1; z2 < 2; z2++) {
                 blockState = world.getBlockState(blockpos$Mutable.add(x2, 0, z2));
                 material = blockState.getMaterial();
 
-                if ((!material.isSolid() || unacceptableSolidMaterials.contains(material) || BlockTags.PLANKS.contains(blockState.getBlock())) && blockState.getFluidState().isEmpty() && blockState.getFluidState() != Fluids.WATER.getStill(false)) {
+                if ((!material.isSolid() || unacceptableSolidMaterials.contains(material) ||
+                BlockTags.PLANKS.contains(blockState.getBlock())) &&
+                blockState.getFluidState().isEmpty() &&
+                blockState.getFluidState() != Fluids.WATER.getStill(false)) {
                     return false;
-                }
+            }
             }
         }
 
         return true;
     }
+
 }

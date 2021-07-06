@@ -11,21 +11,21 @@ import net.minecraft.world.gen.feature.FeatureConfig;
 public class WorldGenRegistrationHelper {
 
     public static <C extends FeatureConfig, F extends Feature<C>> F createFeature(String id, F feature) {
-        Identifier bygID = new Identifier(BiomesMod.MOD_ID, id);
-        if (Registry.FEATURE.getIds().contains(bygID))
-            throw new IllegalStateException("Feature ID: \"" + bygID.toString() + "\" already exists in the Features registry!");
+        Identifier bmID = new Identifier(BiomesMod.MOD_ID, id);
+        if (Registry.FEATURE.getIds().contains(bmID))
+            throw new IllegalStateException("Feature ID: \"" + bmID.toString() + "\" already exists in registry.");
 
-        Registry.register(Registry.FEATURE, bygID, feature);
-        BYGFeatures.features.add(feature);
+        Registry.register(Registry.FEATURE, bmID, feature);
+        BMFeatures.features.add(feature);
         return feature;
     }
 
     public static <FC extends FeatureConfig, F extends Feature<FC>, CF extends ConfiguredFeature<FC, F>> CF createConfiguredFeature(String id, CF configuredFeature) {
-        Identifier bygID = new Identifier(BiomesMod.MOD_ID, id);
-        if (BuiltinRegistries.CONFIGURED_FEATURE.getIds().contains(bygID))
-            throw new IllegalStateException("Configured Feature ID: \"" + bygID.toString() + "\" already exists in the Configured Features registry!");
+        Identifier bmID = new Identifier(BiomesMod.MOD_ID, id);
+        if (BuiltinRegistries.CONFIGURED_FEATURE.getIds().contains(bmID))
+            throw new IllegalStateException("Configured Feature ID: \"" + bmID.toString() + "\" already exists in registry.");
 
-        Registry.register(BuiltinRegistries.CONFIGURED_FEATURE, bygID, configuredFeature);
+        Registry.register(BuiltinRegistries.CONFIGURED_FEATURE, bmID, configuredFeature);
         return configuredFeature;
     }
 }
