@@ -8,8 +8,8 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.biomes.dimensions.VoidChunkGenerator;
-import net.fabricmc.biomes.features.BYGDefaultBiomeFeatures;
-import net.fabricmc.biomes.features.BYGFeatures;
+import net.fabricmc.biomes.features.BMDefaultBiomeFeatures;
+import net.fabricmc.biomes.features.BMFeatures;
 import net.fabricmc.biomes.features.StoneSpiralFeature;
 import net.fabricmc.biomes.fluids.AcidFluid;
 import net.fabricmc.biomes.structures.MyPiece;
@@ -114,7 +114,7 @@ public class BiomesMod implements ModInitializer {
 		DefaultBiomeFeatures.addMineables(generatorSettings);
 		DefaultBiomeFeatures.addLandCarvers(generatorSettings);
 		DefaultBiomeFeatures.addDefaultUndergroundStructures(generatorSettings);
-		BYGDefaultBiomeFeatures.addLargeLake(generatorSettings);
+		BMDefaultBiomeFeatures.addLargeLake(generatorSettings); //add feature to custom biome
 
 		return (new Biome.Builder())
 		.precipitation(Biome.Precipitation.RAIN)
@@ -161,15 +161,16 @@ public class BiomesMod implements ModInitializer {
 
 		Registry.register(BuiltinRegistries.CONFIGURED_FEATURE, new Identifier("biomes", "stone_spiral"), STONE_SPIRAL_CONFIGURED);
 
-		BYGWorldGenRegistries.registerFeatures();
+		/* Wide Lake Feature */
+		BMWorldGenRegistries.registerFeatures();
 
-
-		RegistryKey<ConfiguredFeature<?, ?>> widewaterLake = RegistryKey.of(Registry.CONFIGURED_FEATURE_WORLDGEN,
-        new Identifier("biomes", "wide_water_lake"));
+		RegistryKey<ConfiguredFeature<?, ?>> widewaterLake = RegistryKey.of(Registry.CONFIGURED_FEATURE_WORLDGEN, 
+		new Identifier("biomes", "wide_water_lake"));
 
 		BiomeModifications.addFeature(BiomeSelectors.foundInOverworld(),
 		GenerationStep.Feature.RAW_GENERATION,
-		widewaterLake);
+		widewaterLake
+		);
 
 		/* Dimensions */
 		Registry.register(Registry.CHUNK_GENERATOR, new Identifier("biomes", "void"), VoidChunkGenerator.CODEC);
@@ -259,12 +260,11 @@ public class BiomesMod implements ModInitializer {
 		return context.getSource().getMinecraftServer().getWorld(dimensionRegistryKey);
 	}
 
-	// Fluids 
-	public static class BYGWorldGenRegistries {
-
-        public static void registerFeatures() {
-            BYGFeatures.init();
-        }
+	// Wide Lake Feature
+	public static class BMWorldGenRegistries {
+		public static void registerFeatures() {
+			BMFeatures.init();
+		}
 	}
 
 }
