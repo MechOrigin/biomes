@@ -3,6 +3,10 @@ package net.fabricmc.biomes;
 import static net.minecraft.entity.EntityType.COW;
 import static net.minecraft.server.command.CommandManager.literal;
 
+import javax.naming.Context;
+import javax.swing.text.AbstractDocument.Content;
+
+import com.mojang.brigadier.Command;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
@@ -16,6 +20,7 @@ import net.fabricmc.biomes.structures.MyPiece;
 import net.fabricmc.biomes.structures.Structure1;
 import net.fabricmc.fabric.api.biome.v1.BiomeModifications;
 import net.fabricmc.fabric.api.biome.v1.BiomeSelectors;
+import net.fabricmc.fabric.api.biome.v1.NetherBiomes;
 import net.fabricmc.fabric.api.biome.v1.OverworldBiomes;
 import net.fabricmc.fabric.api.biome.v1.OverworldClimate;
 import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback;
@@ -72,22 +77,22 @@ public class BiomesMod implements ModInitializer {
 	public static final String MOD_ID = "biomes";
 
 	/* Dimensions */
-	private static final RegistryKey<DimensionOptions> DIMENSION_KEY = RegistryKey.of(
-			Registry.DIMENSION_KEY,
-			new Identifier("biomes", "void")
+	private static final RegistryKey<DimensionOptions> DIMENSIONS_KEY = RegistryKey.of(
+		Registry.DIMENSION_KEY,
+		new Identifier("biomes", "void")
 	);
 
 	private static RegistryKey<World> WORLD_KEY = RegistryKey.of(
-			Registry.WORLD_KEY,
-			DIMENSION_KEY.getValue()
+		Registry.WORLD_KEY,
+		DIMENSIONS_KEY.getValue()
 	);
 
 	@SuppressWarnings({"unused"})
 	private static final RegistryKey<DimensionType> DIMENSION_TYPE_KEY = RegistryKey.of(
-			Registry.DIMENSION_TYPE_KEY,
-			new Identifier("biomes", "void_type")
+		Registry.DIMENSION_TYPE_KEY,
+		new Identifier("biomes", "void")
 	);
-
+	
 	/* Structures */
 	public static final StructurePieceType MY_PIECE = MyPiece::new;
 	private static final StructureFeature<DefaultFeatureConfig> MY_STRUCTURE = new Structure1(DefaultFeatureConfig.CODEC);
@@ -118,7 +123,7 @@ public class BiomesMod implements ModInitializer {
 
 		return (new Biome.Builder())
 		.precipitation(Biome.Precipitation.RAIN)
-		.category(Biome.Category.NONE)
+		.category(Biome.Category.NONE) //change to nether, end, or whatever to be specific
 		.depth(0.125F)
 		.scale(0.05F)
 		.temperature(0.8F)
@@ -135,6 +140,9 @@ public class BiomesMod implements ModInitializer {
 	}
 
 	public static final RegistryKey<Biome> CUSTOMLAND_KEY = RegistryKey.of(Registry.BIOME_KEY, new Identifier("biomes", "customland"));
+
+	//Nether Noise points
+	public static final Biome.MixedNoisePoint NOISE_POINT = new Biome.MixedNoisePoint(0.0F, 0.0F, 0.35F, 0.35F, 0.2F);
 	
 	/* Fluids */
 	public static FlowableFluid STILL_ACID;
@@ -181,25 +189,25 @@ public class BiomesMod implements ModInitializer {
 			ServerWorld overworld = server.getWorld(World.OVERWORLD);
 			ServerWorld world = server.getWorld(WORLD_KEY);
 
-			if (world == null) throw new AssertionError("Test world doesn't exist.");
+			if (world == null) throw new AssertionError("Void world doesn't exist.");
 
 			Entity entity = COW.create(overworld);
 
-			if (!entity.world.getRegistryKey().equals(World.OVERWORLD)) throw new AssertionError("Entity starting world isn't the overworld");
+			if (!entity.world.getRegistryKey().equals(World.OVERWORLD)) throw new AssertionError("Entity starting void world isn't in overworld.");
 
 			TeleportTarget target = new TeleportTarget(Vec3d.ZERO, new Vec3d(1, 1, 1), 45f, 60f);
 
 			Entity teleported = FabricDimensions.teleport(entity, world, target);
 
-			if (teleported == null) throw new AssertionError("Entity didn't teleport");
+			if (teleported == null) throw new AssertionError("Entity didn't teleport.");
 
-			if (!teleported.world.getRegistryKey().equals(WORLD_KEY)) throw new AssertionError("Target world not reached.");
+			if (!teleported.world.getRegistryKey().equals(WORLD_KEY)) throw new AssertionError("Target void world cannot be reached.");
 
-			if (!teleported.getPos().equals(target.position)) throw new AssertionError("Target Position not reached.");
+			if (!teleported.getPos().equals(target.position)) throw new AssertionError("Target position cannot be reached.");
 		});
 
 		CommandRegistrationCallback.EVENT.register((dispatcher, dedicated) ->
-				dispatcher.register(literal("fabric_dimension_test").executes(BiomesMod.this::swapTargeted))
+			dispatcher.register(literal("fabric_dimension_test").executes(BiomesMod.this::swapTargeted))
 		);
 
 		/* Structures */
@@ -220,12 +228,13 @@ public class BiomesMod implements ModInitializer {
 		Registry.register(BuiltinRegistries.CONFIGURED_SURFACE_BUILDER, new Identifier("biomes", "basalt"), CUSTOM_SURFACE_BUILDER_0);
 		Registry.register(BuiltinRegistries.BIOME, CUSTOMLAND_KEY.getValue(), CUSTOMLAND);
 
+		NetherBiomes.addNetherBiome(CUSTOMLAND_KEY, NOISE_POINT);
+
 		OverworldBiomes.addContinentalBiome(CUSTOMLAND_KEY, OverworldClimate.TEMPERATE, 2D);
 		OverworldBiomes.addContinentalBiome(CUSTOMLAND_KEY, OverworldClimate.COOL, 2D);
 	}
 
 	/* Dimensions */
-
 	private int swapTargeted(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
 		ServerPlayerEntity player = context.getSource().getPlayer();
 		ServerWorld serverWorld = player.getServerWorld();
@@ -236,21 +245,19 @@ public class BiomesMod implements ModInitializer {
 			FabricDimensions.teleport(player, modWorld, target);
 
 			if (player.world != modWorld) {
-				throw new CommandException(new LiteralText("Teleportation failed!"));
+				throw new CommandException(new LiteralText("Teleportation Failed."));
 			}
 
 			modWorld.setBlockState(new BlockPos(0, 100, 0), Blocks.DIAMOND_BLOCK.getDefaultState());
 			modWorld.setBlockState(new BlockPos(0, 101, 0), Blocks.TORCH.getDefaultState());
 		} else {
 			TeleportTarget target = new TeleportTarget(new Vec3d(0, 100, 0), Vec3d.ZERO,
-					(float) Math.random() * 360 - 180, (float) Math.random() * 360 - 180);
+			(float) Math.random() * 360 - 180, (float) Math.random() * 360 - 180);
 			FabricDimensions.teleport(player, getWorld(context, World.OVERWORLD), target);
 		}
 
 		return 1;
 	}
-
-																																													//Caprice
 
 	private ServerWorld getModWorld(CommandContext<ServerCommandSource> context) {
 		return getWorld(context, WORLD_KEY);
@@ -259,6 +266,7 @@ public class BiomesMod implements ModInitializer {
 	private ServerWorld getWorld(CommandContext<ServerCommandSource> context, RegistryKey<World> dimensionRegistryKey) {
 		return context.getSource().getMinecraftServer().getWorld(dimensionRegistryKey);
 	}
+
 
 	// Wide Lake Feature
 	public static class BMWorldGenRegistries {
