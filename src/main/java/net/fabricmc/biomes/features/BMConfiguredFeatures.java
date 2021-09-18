@@ -2,7 +2,6 @@ package net.fabricmc.biomes.features;
 
 import static net.fabricmc.biomes.features.WorldGenRegistrationHelper.createConfiguredFeature;
 
-import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.world.gen.decorator.ChanceDecoratorConfig;
 import net.minecraft.world.gen.decorator.Decorator;

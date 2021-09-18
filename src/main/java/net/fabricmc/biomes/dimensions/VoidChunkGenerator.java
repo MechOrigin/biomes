@@ -3,12 +3,10 @@ package net.fabricmc.biomes.dimensions;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
-import net.fabricmc.biomes.BiomesClient;
 import net.minecraft.block.BlockState;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.ChunkRegion;
 import net.minecraft.world.Heightmap;
-import net.minecraft.world.Heightmap.Type;
 import net.minecraft.world.WorldAccess;
 import net.minecraft.world.biome.source.BiomeSource;
 import net.minecraft.world.chunk.Chunk;

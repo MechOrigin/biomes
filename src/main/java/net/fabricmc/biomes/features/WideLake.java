@@ -8,7 +8,6 @@ import com.google.common.collect.ImmutableSet;
 import com.mojang.serialization.Codec;
 
 import net.fabricmc.biomes.BiomesMod;
-import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.Material;

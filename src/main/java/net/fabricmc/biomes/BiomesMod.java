@@ -3,14 +3,12 @@ package net.fabricmc.biomes;
 import static net.minecraft.entity.EntityType.COW;
 import static net.minecraft.server.command.CommandManager.literal;
 
-import javax.naming.Context;
-import javax.swing.text.AbstractDocument.Content;
-
-import com.mojang.brigadier.Command;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.biomes.blocks.ExampleBlock;
+import net.fabricmc.biomes.blocks.ModBlocks;
 import net.fabricmc.biomes.dimensions.VoidChunkGenerator;
 import net.fabricmc.biomes.features.BMDefaultBiomeFeatures;
 import net.fabricmc.biomes.features.BMFeatures;
@@ -23,19 +21,26 @@ import net.fabricmc.fabric.api.biome.v1.BiomeSelectors;
 import net.fabricmc.fabric.api.biome.v1.NetherBiomes;
 import net.fabricmc.fabric.api.biome.v1.OverworldBiomes;
 import net.fabricmc.fabric.api.biome.v1.OverworldClimate;
+import net.fabricmc.fabric.api.client.itemgroup.FabricItemGroupBuilder;
 import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.dimension.v1.FabricDimensions;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
 import net.fabricmc.fabric.api.structure.v1.FabricStructureBuilder;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.FluidBlock;
+import net.minecraft.block.Material;
+import net.minecraft.block.WallBlock;
 import net.minecraft.command.CommandException;
 import net.minecraft.entity.Entity;
 import net.minecraft.fluid.FlowableFluid;
+import net.minecraft.item.BlockItem;
 import net.minecraft.item.BucketItem;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemGroup;
+import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -75,6 +80,23 @@ import net.minecraft.world.gen.surfacebuilder.TernarySurfaceConfig;
 public class BiomesMod implements ModInitializer {
 	/* Constants */
 	public static final String MOD_ID = "biomes";
+
+	/* Blocks */
+	public static final ItemGroup EXAMPLE_BUILDING_BLOCKS = FabricItemGroupBuilder.build(new Identifier(MOD_ID, "example_building_blocks"), () ->
+	new ItemStack(ModBlocks.ANDESITE_BRICKS));
+
+	public static final Block EXAMPLE_BLOCK = new ExampleBlock(FabricBlockSettings.of(Material.METAL).strength(4.0f));
+	public static final Block EXAMPLE_BLOCK_WALL = new WallBlock(FabricBlockSettings.copyOf(EXAMPLE_BLOCK));
+
+	/* More Blocks Handled by ModBlocks class */
+	public static final Item ANDESITE_BRICKS = register(ModBlocks.ANDESITE_BRICKS, BiomesMod.EXAMPLE_BUILDING_BLOCKS);
+	public static final Item ANDESITE_BRICKS_STAIRS = register(ModBlocks.ANDESITE_BRICKS_STAIRS, BiomesMod.EXAMPLE_BUILDING_BLOCKS);
+	public static final Item ANDESITE_BRICKS_SLAB = register(ModBlocks.ANDESITE_BRICKS_SLAB, BiomesMod.EXAMPLE_BUILDING_BLOCKS);
+	public static final Item ANDESITE_BRICKS_WALL = register(ModBlocks.ANDESITE_BRICKS_WALL, BiomesMod.EXAMPLE_BUILDING_BLOCKS);
+
+	public static Item register(Block block, ItemGroup group) {
+		return Registry.register(Registry.ITEM, Registry.BLOCK.getId(block), new BlockItem(block, new Item.Settings().maxCount(64).group(group)));
+	}
 
 	/* Dimensions */
 	private static final RegistryKey<DimensionOptions> DIMENSIONS_KEY = RegistryKey.of(
@@ -158,6 +180,14 @@ public class BiomesMod implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
+		/* Blocks */
+		Registry.register(Registry.BLOCK, new Identifier(BiomesMod.MOD_ID, "example_block2"), EXAMPLE_BLOCK);
+		Registry.register(Registry.ITEM, new Identifier(BiomesMod.MOD_ID, "example_block2"), new BlockItem(EXAMPLE_BLOCK, new FabricItemSettings().group(ItemGroup.MISC)));
+		
+		Registry.register(Registry.BLOCK, new Identifier(BiomesMod.MOD_ID, "blackstone_wall"), EXAMPLE_BLOCK_WALL);
+		Registry.register(Registry.ITEM, new Identifier(BiomesMod.MOD_ID, "blackstone_wall"), new BlockItem(EXAMPLE_BLOCK_WALL, new FabricItemSettings().group(ItemGroup.MISC)));
+		new ModBlocks();
+
 		/* Fluids */
 		STILL_ACID = Registry.register(Registry.FLUID, new Identifier(MOD_ID, "acid"), new AcidFluid.Still());
 		FLOWING_ACID = Registry.register(Registry.FLUID, new Identifier(MOD_ID, "flowing_acid"), new AcidFluid.Flowing());
